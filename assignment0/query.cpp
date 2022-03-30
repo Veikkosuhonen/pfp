@@ -4,8 +4,9 @@
 #include <string>
 #include <unordered_set>
 
-#include "binary_tree.hpp"
-#include "vector_set.hpp"
+// #include "binary_tree.hpp"
+// #include "vector_set.hpp"
+#include "constrained_set.hpp"
 
 /**
  * Helper function to ouput usage information when the -h flag is detected
@@ -84,7 +85,7 @@ void run_ops(query_structure* qs, std::istream& in) {
     // If validation si not used, an optimizing compiler will remove the
     // initialization.
     std::unordered_set<int> us;
-    if constexpr (debug) std::cout << "Enter values to add" << std::endl;
+    // if constexpr (debug) std::cout << "Enter values to add" << std::endl;
     int val;
     bool insert = true;
     // Will execute in a loop untill reaching the end of the input stream.
@@ -148,6 +149,7 @@ void select_qs(int type, uint64_t limit, bool separate_queries,
     // unless limits are specified. Type 6 is for the extra task due at the end
     // of the course if you want extra points.
     if (type == 0) {
+        type = 4;
         if (limit > 0 && limit < 10e6) {
             type = 5;
         } else if (separate_queries) {
@@ -169,13 +171,18 @@ void select_qs(int type, uint64_t limit, bool separate_queries,
     } else if (type == 3) {
         if constexpr (debug)
             std::cerr << "Using vector_set" << std::endl;
-        vector_set us;
-        run_ops<vector_set, debug, verify>(&us, in);
+        /*vector_set us;
+        run_ops<vector_set, debug, verify>(&us, in);*/
+    } else if (type == 4) {
+        if constexpr (debug)
+            std::cerr << "Using constrained_set" << std::endl;
+        constrained_set us;
+        run_ops<constrained_set, debug, verify>(&us, in);
     } else {
         if constexpr (debug)
             std::cerr << "Using unbalanced binary tree" << std::endl;
-        pfp::binary_tree<int> tree;
-        run_ops<pfp::binary_tree<int>, debug, verify>(&tree, in);
+        // pfp::binary_tree<int> tree;
+        // run_ops<pfp::binary_tree<int>, debug, verify>(&tree, in);
     }
 }
 /**
@@ -192,10 +199,10 @@ int main(int argc, char const* argv[]) {
     // This mean a workaround is required to test custom data structures.
     // For example to submit with the unbalanced binary tree "-t 3" by default
     // you should change the line below to "int type = 3;".
-    int type = 0;
+    int type = 4;
+    int input_file = 1;
     uint64_t limit = (uint32_t(1) << 31) - 1;
     bool separate_queries = false;
-    int input_file = 0;
     int verify = false;
     int i = 1;
     bool debug = false;
@@ -221,7 +228,7 @@ int main(int argc, char const* argv[]) {
     if (debug)
         std::cerr << "type = " << type << ", limit = " << limit
                   << ", separate queries = " << separate_queries << std::endl;
-
+    
     // Both std::cin (console input) and std::ifstream (input file stream)
     // inherit std::istream (input stream).
     // The rediculously verbose way of calling select_qs is due to not being

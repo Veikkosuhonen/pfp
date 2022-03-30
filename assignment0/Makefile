@@ -14,7 +14,7 @@ CPPFLAGS = -std=c++17 -Wall -Wextra -pedantic -march=native
 # Environment variable containing the name of headers that will be used
 # with most executables. Without this, make will not know to recompile
 # binaries when headers change.
-HEADERS = binary_tree.hpp
+HEADERS = constrained_set.hpp # before: binary_tree.hpp
 
 # Tells make to not expect to actually create files called "clean" or "debug".
 .PHONY: clean debug

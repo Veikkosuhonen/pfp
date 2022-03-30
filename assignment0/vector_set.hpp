@@ -1,30 +1,39 @@
 #include <vector>
+#include <bitset>
 #include <algorithm>
-#include <iostream>
-#include <cmath>
 
 class vector_set {
     private:
         std::vector<int> v;
 
         bool query_mode = false;
+        int size = 0;
         int l = 0;
         int r = 0;
-        int found = 0;
+        int range = 0;
+        int middle_val = 0;
 
         void switch_to_query_mode() {
+            size = v.size();
             std::sort(v.begin(), v.end());
+            middle_val = v[v.size() / 2]; // every query needs it so it might just help a tiny bit
         }
 
-        int binary_search(int number, int start, int end) {
+        int binary_search(int number) {
             
             static int middle, val = 0;
-            l = start;
-            r = end;
-            found = 0;
+
+            if (number < middle_val) {
+                r = size / 2 - 1;
+                l = 0;
+            } else {
+                l = size / 2 + 1;
+                r = size;
+            }
+            range = size / 4;
+            middle = l + range;
 
             while (l <= r) {
-                middle = l + (r - l) / 2;
                 val = v[middle];
 
                 if (number < val) {
@@ -32,12 +41,13 @@ class vector_set {
                 } else if (number > val) {
                     l = middle + 1;
                 } else {
-                    l = middle +1;
-                    found = val;
+                    return 1;
                 }
+                range /= 2;
+                middle = l + range;
             }
 
-            return found;
+            return 0;
         }
 
     public: 
@@ -50,7 +60,6 @@ class vector_set {
                 switch_to_query_mode();
                 query_mode = true;
             }
-
-            return binary_search(number, 0, v.size());
+            return binary_search(number);
         }
 };

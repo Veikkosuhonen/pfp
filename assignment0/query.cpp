@@ -4,8 +4,8 @@
 #include <string>
 #include <unordered_set>
 
-// #include "binary_tree.hpp"
-// #include "vector_set.hpp"
+#include "binary_tree.hpp"
+#include "vector_set.hpp"
 #include "constrained_set.hpp"
 
 /**
@@ -171,8 +171,8 @@ void select_qs(int type, uint64_t limit, bool separate_queries,
     } else if (type == 3) {
         if constexpr (debug)
             std::cerr << "Using vector_set" << std::endl;
-        /*vector_set us;
-        run_ops<vector_set, debug, verify>(&us, in);*/
+        vector_set us;
+        run_ops<vector_set, debug, verify>(&us, in);
     } else if (type == 4) {
         if constexpr (debug)
             std::cerr << "Using constrained_set" << std::endl;
@@ -181,8 +181,8 @@ void select_qs(int type, uint64_t limit, bool separate_queries,
     } else {
         if constexpr (debug)
             std::cerr << "Using unbalanced binary tree" << std::endl;
-        // pfp::binary_tree<int> tree;
-        // run_ops<pfp::binary_tree<int>, debug, verify>(&tree, in);
+        pfp::binary_tree<int> tree;
+        run_ops<pfp::binary_tree<int>, debug, verify>(&tree, in);
     }
 }
 /**

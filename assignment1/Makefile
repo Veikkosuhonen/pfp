@@ -14,7 +14,7 @@ CPPFLAGS = -std=c++17 -Wall -Wextra -pedantic -march=native
 # Environment variable containing the name of headers that will be used
 # with most executables. Without this, make will not know to recompile
 # binaries when headers change.
-HEADERS = constrained_set.hpp binary_tree.hpp vector_set.hpp query.cpp
+HEADERS = main.cpp
 
 # Tells make to not expect to actually create files called "clean" or "debug".
 .PHONY: clean debug
@@ -28,19 +28,14 @@ HEADERS = constrained_set.hpp binary_tree.hpp vector_set.hpp query.cpp
 # file. We tell make to call the gnu c++ compiler (c++) with the specified parameters
 # We use the general CPPFLAGS variable and provide additional flags to define how
 # we want the compiler to optimize and what the output file should be called.
-main: query.cpp $(HEADERS)
-	g++ $(CPPFLAGS) -DNDEBUG -Ofast -o main query.cpp
+main: main.cpp $(HEADERS)
+	g++ $(CPPFLAGS) -DNDEBUG -Ofast -o main main.cpp
 
 # Tells make what to do when "make clean" is called.
 # Here we simply remove the "query" binary.
 clean:
-	rm -f query
 	rm -f main
 
-# Tells make what to do when "make debug" is called.
-# Here we compile the binary with different flags to support debugging.
-debug: query.cpp $(HEADERS)
-	g++ $(CPPFLAGS) -DDEBUG -g -o main query.cpp
 
 # Generic rule that tells make that nothing needs to be done about c++ header files.
 %.hpp:

@@ -2,6 +2,8 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <algorithm>
+#include <bitset>
 
 class BitArray {
     private:
@@ -20,20 +22,67 @@ class BitArray {
             sv.resize(z + 1);
         }
 
-        int get(int i) {
+        int binary_search(int number) {
+            int size = bv.size() * 64;
+            int l = 0;
+            int r = size - 1;
+            static int middle, val = 0;
+
+            while (l <= r) {
+                middle = l + (r - l) / 2;
+
+                val = sum(middle);
+
+                if (number < val) {
+                    r = middle - 1;
+                } else if (number > val) {
+                    l = middle + 1;
+                } else {
+                    return middle;
+                }
+            }
+
+            return 0;
+        }
+
+        int location(int i) {
+            int index = binary_search(i);
+            while (index >= 0 && sum(index) == i) {
+                index--;
+            }
+            return index + 1;
+        }
+
+        int sum(int i) {
             uint64_t j = i % 64;
             uint64_t z = i / 64;
+
             uint64_t sum = z > 0 ? sv[z - 1] : 0;
+
             uint64_t remaining_bits_to_check = bv[z];
+
             uint64_t mask = (1UL << j) - 1;
-            std::cerr << i << " " << j << " " << z << " " << sum << " " << bv[z] << " " << mask << std::endl;
+
+            // std::cerr << i << " " << j << " " << z << " " << sum << " " << bv[z] << " " << mask << std::endl;
+
             remaining_bits_to_check &= mask;
+
             sum += __builtin_popcountl(remaining_bits_to_check);
-            std::cerr << "__" << __builtin_popcountl(remaining_bits_to_check) << std::endl;
+            // std::cerr << "__" << __builtin_popcountl(remaining_bits_to_check) << std::endl;
             return sum;
         }
+
+        void precompute_sums() {
+            int sum = 0;
+            int i = 0;
+            while (i < bv.size()) {
+                sum += __builtin_popcountl(bv[i]);
+                sv[i] = sum;
+                i++;
+            }
+        }
         
-        bool get0(int i) {
+        bool get(int i) {
             int j = i % 64;
             int z = i / 64;
 
@@ -45,17 +94,35 @@ class BitArray {
             int z = i / 64;
 
             bv[z] |= 1UL << j;
+        }
+};
 
-            int l = z;
-            while (l < sv.size()) {
-                sv[l]++;
-                l++;
+class PackedArray {
+    private:
+        int k;
+        int n;
+        std::vector<bool> v;
+    
+    public:
+        PackedArray(int _n, int _k) {
+            n = _n;
+            k = _k;
+            v.resize(n * k);
+        }
+
+        void set(u_int64_t num) {
+            int i = 0;
+            while (i < k) {
+                
             }
+        }
+
+        bool get(u_int64_t) {
+            return false;
         }
 };
 
 int main(int argc, char const* argv[]) {
-
     std::ifstream in;
 
     std::vector<uint64_t> v;
@@ -84,6 +151,8 @@ int main(int argc, char const* argv[]) {
     }
 
     v.clear();
+    b.precompute_sums();
+
     i = 0;
     while (i++ < n) {
         uint64_t num;
@@ -94,7 +163,8 @@ int main(int argc, char const* argv[]) {
     i = 0;
     while (i < n) {
         // std::cerr << v[i] << " " << b.get(v[i]) << std::endl;
-        std::cout << b.get(v[i]) << std::endl;
+        // std::cout << "i = " << i << " sum = " << v[i] << " " << std::endl;;
+        std::cout << b.location(v[i]) << std::endl;
         i++;
     }
 

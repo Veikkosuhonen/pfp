@@ -4,6 +4,8 @@
 #include <cmath>
 #include <algorithm>
 #include <bitset>
+#include <chrono>
+#include <string>
 
 class BitArray {
     private:
@@ -127,12 +129,27 @@ int main(int argc, char const* argv[]) {
 
     std::vector<uint64_t> v;
 
+    bool output_time = false;
+    bool sort = false;
+    if (argc > 1) {
+        output_time |= std::string("-t").compare(argv[1]) == 0;
+        sort |= std::string("-s").compare(argv[1]) == 0;
+    }
+    if (argc > 2) {
+        output_time |= std::string("-t").compare(argv[2]) == 0;
+        sort |= std::string("-s").compare(argv[2]) == 0;
+    }
 
+
+    std::chrono::high_resolution_clock clock;
+
+    auto start = clock.now();
 
     int n;
     std::cin.read((char*)&n, sizeof(uint64_t));
     int m;
     std::cin.read((char*)&m, sizeof(uint64_t));
+
     // std::cerr << n << " " << m << std::endl;
 
     BitArray b(m);
@@ -143,6 +160,17 @@ int main(int argc, char const* argv[]) {
         std::cin.read((char*)&num, sizeof(uint64_t));
         v.push_back(num);
     }
+    if (sort) std::sort(v.begin(), v.end());
+
+    auto end = clock.now();
+
+    auto time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+
+    if (output_time) {
+        std::cerr << "Insertion input reading took " << time.count() << " seconds" << std::endl;
+    }
+
+    start = clock.now();
 
     i = 0;
     while (i < n) {
@@ -150,8 +178,24 @@ int main(int argc, char const* argv[]) {
         i++;
     }
 
+    end = clock.now();
+    time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+    if (output_time) {
+        std::cerr << "Insertion took " << time.count() << " seconds" << std::endl;
+    }
+
+    start = clock.now();
+
     v.clear();
     b.precompute_sums();
+
+    end = clock.now();
+    time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+    if (output_time) {
+        std::cerr << "Precomputing took " << time.count() << " seconds" << std::endl;
+    }
+
+    start = clock.now();
 
     i = 0;
     while (i++ < n) {
@@ -159,16 +203,29 @@ int main(int argc, char const* argv[]) {
         std::cin.read((char*)&num, sizeof(uint64_t));
         v.push_back(num);
     }
+    if (sort) std::sort(v.begin(), v.end());
+
+    end = clock.now();
+    time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+    if (output_time) {
+        std::cerr << "Query input reading took " << time.count() << " seconds" << std::endl;
+    }
+
+    start = clock.now();
 
     i = 0;
     while (i < n) {
         // std::cerr << v[i] << " " << b.get(v[i]) << std::endl;
         // std::cout << "i = " << i << " sum = " << v[i] << " " << std::endl;;
-        std::cout << b.location(v[i]) << std::endl;
+        std::cout << b.sum(v[i]) << std::endl;
         i++;
     }
 
-	// in.close();
+    end = clock.now();
+    time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+    if (output_time) {
+        std::cerr << "Querying took " << time.count() << " seconds" << std::endl;
+    }
     
     return 0;
 }

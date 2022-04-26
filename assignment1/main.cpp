@@ -7,6 +7,11 @@
 #include <chrono>
 #include <string>
 
+#include "../include/nanobench.h"
+
+#define benchmark ankerl::nanobench::Bench().run
+#define keep ankerl::nanobench::doNotOptimizeAway
+
 class BitArray {
     private:
         std::vector<uint64_t> bv;
@@ -213,13 +218,19 @@ int main(int argc, char const* argv[]) {
 
     start = clock.now();
 
-    i = 0;
-    while (i < n) {
-        // std::cerr << v[i] << " " << b.get(v[i]) << std::endl;
-        // std::cout << "i = " << i << " sum = " << v[i] << " " << std::endl;;
-        std::cout << b.sum(v[i]) << std::endl;
-        i++;
-    }
+    int s = 0;
+    benchmark("Stuff", [&] {
+        i = 0;
+        while (i < n) {
+            // std::cerr << v[i] << " " << b.get(v[i]) << std::endl;
+            // std::cout << "i = " << i << " sum = " << v[i] << " " << std::endl;;
+            // std::cout << b.sum(v[i]) << std::endl;
+            s += b.sum(v[i]);
+            i++;
+        }
+        keep(s);
+        
+    });
 
     end = clock.now();
     time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);

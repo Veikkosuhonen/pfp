@@ -97,51 +97,71 @@ class BitArray {
 };
 
 int main(int argc, char const* argv[]) {
-    // std::freopen(NULL, "rb", stdin);
+    std::freopen(NULL, "rb", stdin);
+    
+    // https://stackoverflow.com/questions/18412164/fast-c-string-output
+    std::ios_base::sync_with_stdio(false);
+    // std::cin.tie(NULL);
+    // std::cout.tie(NULL);
+    std::cout << std::nounitbuf;
+    // std::setvbuf(stdin, nullptr, _IOFBF, 65536 / 2);
+    // std::setvbuf(stdout, nullptr, _IOFBF, 65536);
 
-    int n;
-    std::cin.read((char*)&n, sizeof(uint64_t));
-    int k;
-    std::cin.read((char*)&k, sizeof(uint64_t));
-    int s;
-    std::cin.read((char*)&s, sizeof(uint64_t));
+    uint64_t n;
+    std::fread((char*)&n, sizeof(uint64_t), 1, stdin);
+    uint64_t k;
+    std::fread((char*)&k, sizeof(uint64_t), 1, stdin);
+    uint64_t s;
+    std::fread((char*)&s, sizeof(uint64_t), 1, stdin);
 
-    // std::cerr << n << " " << k << " " << s << std::endl;
+    std::cerr << n << " " << k << " " << s << std::endl;
 
     BitArray b;
 
-    // std::chrono::high_resolution_clock clock;
-    // auto start = clock.now();
+    std::chrono::high_resolution_clock clock;
+    auto start = clock.now();
 
     int i = 0;
     uint64_t prev = 0UL;
 
+    const size_t BUFFER_SIZE = 64;
+    uint64_t num;
+    uint64_t buffer[BUFFER_SIZE];
+    int mod = 0;
+    
     if (s > 0) {
-        uint64_t num;
         while (i < n) {
-            std::cin.read((char*)&num, sizeof(uint64_t));
+            mod = i % BUFFER_SIZE;
+            if (mod == 0)
+                std::fread(buffer, sizeof(uint64_t), BUFFER_SIZE, stdin);
+            
+            num = buffer[mod];
             b.add(num - prev);
             prev = num;
+            
             i++;
         }
     } else {
-        uint64_t num;
         while (i < n) {
-            std::cin.read((char*)&num, sizeof(uint64_t));
-            b.add(num);
+            mod = i % BUFFER_SIZE;
+            if (mod == 0)
+                std::fread(buffer, sizeof(uint64_t), BUFFER_SIZE, stdin);
+            
+            b.add(buffer[mod]);
+            
             i++;
         }
     }
 
-    // auto end = clock.now();
-    // std::cerr << "Read and encode: ";
-    // print_time(start, end);
+    auto end = clock.now();
+    std::cerr << "Read and encode: ";
+    print_time(start, end);
 
 
     std::cout << b.size() << "\n";
-
+    std::cerr << b.size() << "\n";
     
-    // start = clock.now();
+    start = clock.now();
 
     if (s > 0) {
         b.decode_s();
@@ -149,9 +169,9 @@ int main(int argc, char const* argv[]) {
         b.decode();
     }
 
-    // end = clock.now();
-    // std::cerr << "Decode: ";
-    // print_time(start, end);
+    end = clock.now();
+    std::cerr << "Decode: ";
+    print_time(start, end);
     
     
     return 0;

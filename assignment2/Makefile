@@ -31,7 +31,8 @@ HEADERS = main.cpp
 # We use the general CPPFLAGS variable and provide additional flags to define how
 # we want the compiler to optimize and what the output file should be called.
 main: main.cpp $(HEADERS)
-	g++ -I ../include $(CPPFLAGS) -DNDEBUG -Ofast -o main main.cpp ../include/nanobench.o
+	g++ -I ../include $(CPPFLAGS) -DNDEBUG -Ofast -o main main.cpp 
+# ../include/nanobench.o
 # Tells make what to do when "make clean" is called.
 # Here we simply remove the "query" binary.
 clean:

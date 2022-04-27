@@ -7,13 +7,13 @@
 #include <chrono>
 #include <string>
 
-#include "../include/nanobench.h"
-
-#define benchmark ankerl::nanobench::Bench().run
-#define keep ankerl::nanobench::doNotOptimizeAway
-
 const uint8_t FIRST_BIT = (1 << 7);
 const uint8_t FIRST_BIT_OFF = FIRST_BIT - 1;
+const uint64_t MODULUS_128 = (((1UL << 63) - 1) >> (63 - 7));
+
+void print_time(std::chrono::_V2::system_clock::time_point start, std::chrono::_V2::system_clock::time_point end) {
+    std::cerr << std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count() << std::endl;
+}
 
 class BitArray {
     private:
@@ -22,29 +22,20 @@ class BitArray {
         std::vector<uint8_t> bv;
     
     public:
-        BitArray() {
-            // bv.resize(64);
-        }
 
         void add(uint64_t num) {
             uint64_t block;
 
             while (true) {
+                block = num & MODULUS_128;
 
-                block = num % 128;
-
-                // block &= FIRST_BIT_OFF;
                 if (num < 128) {
-                    bv.push_back(block + 128); 
+                    bv.push_back(block + 128UL); 
                     break;
                 }
                 bv.push_back(block);
-                // std::cout << (int)block << " ";
-
                 num >>= 7;
             }
-            // std::cout << num << " " << blocks << " " << leading_bits << std::endl;
-
         }
 
         void decode() {
@@ -54,19 +45,17 @@ class BitArray {
 
             uint64_t block;
             while (i < bv.size()) {
-                block = 0UL;
-                block += bv[i];
+                block = bv[i];
                 bool stop = block & FIRST_BIT;
                 block &= FIRST_BIT_OFF;
 
-                block = block << (7 * j);
-                sum |= block;
+                sum |= block << j;
 
-                j++;
+                j += 7;
                 i++;
 
                 if (stop) {
-                    std::cout << sum << std::endl;
+                    std::cout << sum << "\n";
                     sum = 0UL;
                     j = 0;
                 }
@@ -74,15 +63,41 @@ class BitArray {
             
         }
 
+        void decode_s() {
+            int i = 0;
+            int j = 0;
+            uint64_t sum = 0UL;
+            uint64_t prev = 0UL;
+
+            uint64_t block;
+            while (i < bv.size()) {
+                block = 0UL;
+                block = bv[i];
+                bool stop = block & FIRST_BIT;
+                block &= FIRST_BIT_OFF;
+
+                sum |= block << j;
+
+                j += 7;
+                i++;
+
+                if (stop) {
+                    sum += prev;
+                    std::cout << sum << "\n";
+                    prev = sum;
+                    sum = 0UL;
+                    j = 0;
+                }
+            }
+        }
+
         std::size_t size() {
             return bv.size();
         }
 };
 
-
 int main(int argc, char const* argv[]) {
-    std::ifstream in;
-    std::vector<uint64_t> v;
+    // std::freopen(NULL, "rb", stdin);
 
     int n;
     std::cin.read((char*)&n, sizeof(uint64_t));
@@ -91,39 +106,53 @@ int main(int argc, char const* argv[]) {
     int s;
     std::cin.read((char*)&s, sizeof(uint64_t));
 
-    std::cerr << n << " " << k << " " << s << std::endl;
+    // std::cerr << n << " " << k << " " << s << std::endl;
 
     BitArray b;
 
-    // benchmark("Read and encode", [&] {
-        int i = 0;
-        while (i++ < n) {
-            uint64_t num;
+    // std::chrono::high_resolution_clock clock;
+    // auto start = clock.now();
+
+    int i = 0;
+    uint64_t prev = 0UL;
+
+    if (s > 0) {
+        uint64_t num;
+        while (i < n) {
+            std::cin.read((char*)&num, sizeof(uint64_t));
+            b.add(num - prev);
+            prev = num;
+            i++;
+        }
+    } else {
+        uint64_t num;
+        while (i < n) {
             std::cin.read((char*)&num, sizeof(uint64_t));
             b.add(num);
+            i++;
         }
-    // });
+    }
+
+    // auto end = clock.now();
+    // std::cerr << "Read and encode: ";
+    // print_time(start, end);
 
 
-    std::cerr << b.size() << std::endl;
+    std::cout << b.size() << "\n";
 
-    // benchmark("Decode", [&] {
+    
+    // start = clock.now();
+
+    if (s > 0) {
+        b.decode_s();
+    } else {
         b.decode();
-    // });
+    }
 
-
-
-    /*int s = 0;
-    benchmark("Stuff", [&] {
-        while (i < n) {
-            // std::cerr << v[i] << " " << b.get(v[i]) << std::endl;
-            // std::cout << "i = " << i << " sum = " << v[i] << " " << std::endl;;
-            // std::cout << b.sum(v[i]) << std::endl;
-            // s += b.sum(v[i]);
-        }
-        keep(s);
-        
-    });*/
+    // end = clock.now();
+    // std::cerr << "Decode: ";
+    // print_time(start, end);
+    
     
     return 0;
 }

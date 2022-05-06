@@ -169,13 +169,62 @@ class BitArray {
             }
         }
 
+        uint64_t scan(uint64_t index) {
+
+            uint64_t i = 0;
+            uint64_t sum = 0UL;
+
+            uint64_t block;
+            uint64_t bv_block;
+            uint64_t bv_block_internal_index = 0;
+            uint64_t bv_current_block_index = 0;
+            uint64_t current_num_index = 0;
+            uint64_t max_num_of_blocks;
+            
+            while (i < n_blocks) {
+                uint64_t bv_index = (i * acual_block_size) / 64;
+                bv_block = bv[bv_index];
+                block = bv_block >> bv_block_internal_index;
+
+                uint64_t space_left = 64 - bv_block_internal_index;
+                if (space_left < acual_block_size) {
+                    uint64_t remaining = acual_block_size - space_left;
+                    uint64_t remaining_bits = (bv[bv_index + 1] & ((1UL << remaining) - 1)) << (acual_block_size - remaining);
+                    block |= remaining_bits;
+                    // std::cerr << "While decoding, one block spanned multiple bv_blocks " << remaining << " " << remaining_bits << " " << block << " " << (bv[bv_index + 1] & ((1UL << remaining) - 1)) << "\n";
+                }
+
+                bool stop = block & first_bit;
+                block &= first_bit_off;
+
+                // std::cout << bv_index << " " << bv_block_internal_index << " " << bv_current_block_index << " " << bv_block << " " << block << " " << stop << "\n";
+
+                sum |= block << bv_current_block_index;
+
+                bv_block_internal_index = (bv_block_internal_index + acual_block_size) & MODULUS_64;
+                bv_current_block_index += k;
+                i++;
+
+                if (stop) {
+                    if (current_num_index == index) {
+                        return sum;
+                    }
+                    sum = 0UL;
+                    current_num_index++;
+                    bv_current_block_index = 0;
+                }
+            }
+
+            return 0;
+        }
+
         std::size_t size() {
             return n_blocks;
         }
 };
 
 int main(int argc, char const* argv[]) {
-    std::freopen(NULL, "rb", stdin);
+    // std::freopen(NULL, "rb", stdin);
     
     // https://stackoverflow.com/questions/18412164/fast-c-string-output
     std::ios_base::sync_with_stdio(false);
@@ -212,7 +261,7 @@ int main(int argc, char const* argv[]) {
         while (i < n) {
             mod = i % BUFFER_SIZE;
             if (mod == 0)
-                std::fread(buffer, sizeof(uint64_t), BUFFER_SIZE, stdin);
+                std::fread(buffer, sizeof(uint64_t), std::min(BUFFER_SIZE, n - i), stdin);
             
             num = buffer[mod];
             b.add(num - prev);
@@ -224,7 +273,7 @@ int main(int argc, char const* argv[]) {
         while (i < n) {
             mod = i % BUFFER_SIZE;
             if (mod == 0)
-                std::fread(buffer, sizeof(uint64_t), BUFFER_SIZE, stdin);
+                std::fread(buffer, sizeof(uint64_t), std::min(BUFFER_SIZE, n - i), stdin);
             
             b.add(buffer[mod]);
             
@@ -233,6 +282,7 @@ int main(int argc, char const* argv[]) {
     }
 
     auto end = clock.now();
+    
     std::cerr << "Read and encode: ";
     print_time(start, end);
 
@@ -244,7 +294,7 @@ int main(int argc, char const* argv[]) {
     
     start = clock.now();
 
-    if (s > 0) {
+    /*if (s > 0) {
         b.decode_s();
     } else {
         b.decode();
@@ -252,8 +302,28 @@ int main(int argc, char const* argv[]) {
 
     end = clock.now();
     std::cerr << "Decode: ";
-    print_time(start, end);
+    print_time(start, end);*/
     
+    start = clock.now();
+    
+    i = 0;
+    while (i < n) {
+        /*mod = i % BUFFER_SIZE;
+        if (mod == 0)
+            std::fread(buffer, sizeof(uint64_t), BUFFER_SIZE, stdin);
+        
+        num = buffer[mod];*/
+        std::fread((char*)&num, sizeof(uint64_t), 1, stdin);
+
+        //std::cerr << num << "\n";
+        std::cout << b.scan(num) << "\n";
+        
+        i++;
+    }
+
+    end = clock.now();
+    std::cerr << "Queries: ";
+    print_time(start, end);
     
     return 0;
 }

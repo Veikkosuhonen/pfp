@@ -200,7 +200,7 @@ int main(int argc, char const* argv[]) {
     // For example to submit with the unbalanced binary tree "-t 3" by default
     // you should change the line below to "int type = 3;".
     int type = 4;
-    int input_file = 1;
+    int input_file = 0;
     uint64_t limit = (uint32_t(1) << 31) - 1;
     bool separate_queries = false;
     int verify = false;
@@ -259,8 +259,7 @@ int main(int argc, char const* argv[]) {
             if (verify) {
                 select_qs<false, true>(type, limit, separate_queries, std::cin);
             } else {
-                select_qs<false, false>(type, limit, separate_queries,
-                                        std::cin);
+                select_qs<false, false>(type, limit, separate_queries, std::cin);
             }
         }
     }

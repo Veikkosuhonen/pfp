@@ -1,0 +1,1 @@
+make query && zip t4.zip Makefile query.cpp binary_tree.hpp constrained_set.hpp vector_set.hpp

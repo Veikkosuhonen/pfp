@@ -7,11 +7,6 @@
 #include <chrono>
 #include <string>
 
-#include "../include/nanobench.h"
-
-#define benchmark ankerl::nanobench::Bench().run
-#define keep ankerl::nanobench::doNotOptimizeAway
-
 class BitArray {
     private:
         std::vector<uint64_t> bv;
@@ -23,7 +18,7 @@ class BitArray {
             int j = i % 64;
             int z = i / 64;
 
-            // std::cerr << __builtin_popcountl(0UL << 64 - 0) << std::endl;
+            // std::cerr << __builtin_popcountl(0UL << 64 - 0) << "\n";
 
             bv.resize(z + 1);
             sv.resize(z + 1);
@@ -70,12 +65,12 @@ class BitArray {
 
             uint64_t mask = (1UL << j) - 1;
 
-            // std::cerr << i << " " << j << " " << z << " " << sum << " " << bv[z] << " " << mask << std::endl;
+            // std::cerr << i << " " << j << " " << z << " " << sum << " " << bv[z] << " " << mask << "\n";
 
             remaining_bits_to_check &= mask;
 
             sum += __builtin_popcountl(remaining_bits_to_check);
-            // std::cerr << "__" << __builtin_popcountl(remaining_bits_to_check) << std::endl;
+            // std::cerr << "__" << __builtin_popcountl(remaining_bits_to_check) << "\n";
             return sum;
         }
 
@@ -132,6 +127,9 @@ class PackedArray {
 int main(int argc, char const* argv[]) {
     std::ifstream in;
 
+    std::ios_base::sync_with_stdio(false);
+    std::cout << std::nounitbuf;
+
     std::vector<uint64_t> v;
 
     bool output_time = false;
@@ -155,15 +153,23 @@ int main(int argc, char const* argv[]) {
     int m;
     std::cin.read((char*)&m, sizeof(uint64_t));
 
-    // std::cerr << n << " " << m << std::endl;
+    // std::cerr << n << " " << m << "\n";
 
     BitArray b(m);
 
-    int i = 0;
-    while (i++ < n) {
-        uint64_t num;
-        std::cin.read((char*)&num, sizeof(uint64_t));
-        v.push_back(num);
+    const size_t BUFFER_SIZE = 64;
+    uint64_t num;
+    uint64_t buffer[BUFFER_SIZE];
+    uint64_t mod = 0;
+
+    uint64_t i = 0;
+    while (i < n) {
+        mod = i % BUFFER_SIZE;
+        if (mod == 0)
+            std::cin.read((char*)&buffer, sizeof(uint64_t) * std::min(BUFFER_SIZE, n - i));
+
+        v.push_back(buffer[mod]);
+        i++;
     }
     if (sort) std::sort(v.begin(), v.end());
 
@@ -172,7 +178,7 @@ int main(int argc, char const* argv[]) {
     auto time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
 
     if (output_time) {
-        std::cerr << "Insertion input reading took " << time.count() << " seconds" << std::endl;
+        std::cerr << "Insertion input reading took " << time.count() << " seconds" << "\n";
     }
 
     start = clock.now();
@@ -186,7 +192,7 @@ int main(int argc, char const* argv[]) {
     end = clock.now();
     time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
     if (output_time) {
-        std::cerr << "Insertion took " << time.count() << " seconds" << std::endl;
+        std::cerr << "Insertion took " << time.count() << " seconds" << "\n";
     }
 
     start = clock.now();
@@ -197,7 +203,7 @@ int main(int argc, char const* argv[]) {
     end = clock.now();
     time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
     if (output_time) {
-        std::cerr << "Precomputing took " << time.count() << " seconds" << std::endl;
+        std::cerr << "Precomputing took " << time.count() << " seconds" << "\n";
     }
 
     start = clock.now();
@@ -213,29 +219,23 @@ int main(int argc, char const* argv[]) {
     end = clock.now();
     time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
     if (output_time) {
-        std::cerr << "Query input reading took " << time.count() << " seconds" << std::endl;
+        std::cerr << "Query input reading took " << time.count() << " seconds" << "\n";
     }
 
     start = clock.now();
 
-    int s = 0;
-    benchmark("Stuff", [&] {
-        i = 0;
-        while (i < n) {
-            // std::cerr << v[i] << " " << b.get(v[i]) << std::endl;
-            // std::cout << "i = " << i << " sum = " << v[i] << " " << std::endl;;
-            // std::cout << b.sum(v[i]) << std::endl;
-            s += b.sum(v[i]);
-            i++;
-        }
-        keep(s);
-        
-    });
+    i = 0;
+    while (i < n) {
+        // std::cerr << v[i] << " " << b.get(v[i]) << "\n";
+        // std::cout << "i = " << i << " sum = " << v[i] << " " << "\n";;
+        std::cout << b.location(v[i]) << "\n";
+        i++;
+    }
 
     end = clock.now();
     time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
     if (output_time) {
-        std::cerr << "Querying took " << time.count() << " seconds" << std::endl;
+        std::cerr << "Querying took " << time.count() << " seconds" << "\n";
     }
     
     return 0;

@@ -1,0 +1,1 @@
+make main && zip t4.zip Makefile main.cpp
